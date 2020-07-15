@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Calculation:scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:Calculation="http://www.sap.com/ndb/BiModelCalculation.ecore" id="PURCHASE_ORDERS" enforceSqlExecution="false" cacheInvalidationPeriod="NONE" schemaVersion="3.0" dataCategory="CUBE" applyPrivilegeType="NONE">
+<descriptions defaultDescription="PURCHASE ORDERS WITH CURRENCY CONVERTION"/>
+<localVariables>
+  <variable id="IP_O_TARGET_CURRENCY" parameter="true">
+    <descriptions defaultDescription="Target currency for currency convertion"/>
+    <variableProperties defaultValue="USD" mandatory="true" length="3" datatype="NVARCHAR">
+      <valueDomain type="Currency"/>
+      <selection multiLine="false" type="SingleValue"/>
+    </variableProperties>
+  </variable>
+</localVariables>
+<variableMappings/>
+<dataSources>
+  <DataSource id="PO.Header">
+    <resourceUri>PO.Header</resourceUri>
+  </DataSource>
+  <DataSource id="PO.Item">
+    <resourceUri>PO.Item</resourceUri>
+  </DataSource>
+</dataSources>
+<calculationViews>
+  <calculationView xsi:type="Calculation:JoinView" id="Join_1" cardinality="C1_N" joinType="inner">
+    <viewAttributes>
+      <viewAttribute id="PURCHASEORDERID" aggregationType="sum"/>
+      <viewAttribute id="HISTORY_CHANGEDAT"/>
+      <viewAttribute id="PRODUCT_PRODUCTID"/>
+      <viewAttribute id="CURRENCY"/>
+      <viewAttribute id="GROSSAMOUNT" aggregationType="sum"/>
+    </viewAttributes>
+    <calculatedViewAttributes/>
+    <input node="PO.Header">
+      <mapping xsi:type="Calculation:AttributeMapping" target="PURCHASEORDERID" source="PURCHASEORDERID"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="HISTORY_CHANGEDAT" source="HISTORY.CHANGEDAT"/>
+    </input>
+    <input node="PO.Item">
+      <mapping xsi:type="Calculation:AttributeMapping" target="PRODUCT_PRODUCTID" source="PRODUCT.PRODUCTID"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="CURRENCY" source="CURRENCY"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="GROSSAMOUNT" source="GROSSAMOUNT"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="PURCHASEORDERID" source="HEADER.PURCHASEORDERID"/>
+    </input>
+    <joinAttribute name="PURCHASEORDERID"/>
+  </calculationView>
+</calculationViews>
+<logicalModel id="Join_1">
+  <attributes>
+    <attribute id="PURCHASEORDERID" attributeHierarchyActive="false" displayAttribute="false" order="1">
+      <descriptions defaultDescription="Purchase Order ID"/>
+      <keyMapping columnObjectName="Join_1" columnName="PURCHASEORDERID"/>
+    </attribute>
+    <attribute id="HISTORY_CHANGEDAT" attributeHierarchyActive="false" displayAttribute="false" order="2">
+      <descriptions defaultDescription="Last Update Date"/>
+      <keyMapping columnObjectName="Join_1" columnName="HISTORY_CHANGEDAT"/>
+    </attribute>
+    <attribute id="PRODUCT_PRODUCTID" attributeHierarchyActive="false" displayAttribute="false" order="3">
+      <descriptions defaultDescription="Product"/>
+      <keyMapping columnObjectName="Join_1" columnName="PRODUCT_PRODUCTID"/>
+    </attribute>
+    <attribute id="CURRENCY_1" attributeHierarchyActive="false" displayAttribute="false" order="4">
+      <descriptions defaultDescription="Currency"/>
+      <keyMapping columnObjectName="Join_1" columnName="CURRENCY"/>
+    </attribute>
+    <attribute id="PRODUCT_PRODUCTID$local">
+      <descriptions defaultDescription="Product"/>
+      <keyMapping columnObjectName="Join_1" columnName="PRODUCT_PRODUCTID"/>
+    </attribute>
+  </attributes>
+  <calculatedAttributes/>
+  <baseMeasures>
+    <measure id="GROSSAMOUNT" order="5" aggregationType="sum" unconverted="false" measureType="amount" semanticType="amount">
+      <descriptions defaultDescription="Gross Amount"/>
+      <unitCurrencyAttribute attributeName="GROSSAMOUNT_CURRENCY"/>
+      <currencyConversion errorHandling="keepUnconverted" generateOutputUnitCurrencyAttribute="true" outputUnitCurrencyAttributeName="GROSSAMOUNT_CURRENCY" convert="true" accuracy="COMPATIBILITY" method="ERP" lookup="REGULAR">
+        <client>
+          <value>000</value>
+        </client>
+        <currencyConversionTables rates="Conversions.TCURR" configuration="Conversions.TCURV" prefactors="Conversions.TCURF" notations="Conversions.TCURN" precisions="Conversions.TCURX"/>
+        <outputDataType datatype="DECIMAL" length="15" scale="2"/>
+        <sourceCurrency>
+          <attribute attributeName="CURRENCY_1"/>
+        </sourceCurrency>
+        <erpDecimalShift>true</erpDecimalShift>
+        <targetCurrency>
+          <localVariable>IP_O_TARGET_CURRENCY</localVariable>
+        </targetCurrency>
+        <referenceDate>
+          <attribute attributeName="HISTORY_CHANGEDAT"/>
+        </referenceDate>
+        <exchangeRateType>001</exchangeRateType>
+      </currencyConversion>
+      <measureMapping columnName="GROSSAMOUNT" columnObjectName="Join_1"/>
+    </measure>
+    <measure id="OriginalGrossAmount" order="6" aggregationType="sum" measureType="simple">
+      <descriptions defaultDescription="Gross Amount"/>
+      <measureMapping columnName="GROSSAMOUNT" columnObjectName="Join_1"/>
+    </measure>
+  </baseMeasures>
+  <calculatedMeasures/>
+  <restrictedMeasures/>
+  <localDimensions/>
+  <sharedDimensions>
+    <logicalJoin associatedObjectUri="PRODUCTS">
+      <attributes>
+        <attributeRef>PRODUCT_PRODUCTID$local</attributeRef>
+      </attributes>
+      <associatedAttributeNames>
+        <attributeName>PRODUCTID</attributeName>
+      </associatedAttributeNames>
+      <properties cardinality="C1_1" joinType="referential" joinOperator="Equal"/>
+      <associatedAttributeFeatures/>
+    </logicalJoin>
+  </sharedDimensions>
+</logicalModel>
+<layout>
+  <shapes>
+    <shape modelObjectNameSpace="MeasureGroup" modelObjectName="Output" expanded="true">
+      <upperLeftCorner y="85" x="40"/>
+    </shape>
+  
+    <shape modelObjectNameSpace="CalculationView" modelObjectName="Join_1" expanded="true">
+      <upperLeftCorner y="312" x="106"/>
+      <rectangleSize height="30" width="160"/>
+    </shape>
+    <shape modelObjectNameSpace="Join_1" modelObjectName="PO.Header" modelObjectType="JoinNodeInput">
+      <upperLeftCorner y="30" x="20"/>
+      <rectangleSize width="282"/>
+    </shape>
+    <shape modelObjectNameSpace="Join_1" modelObjectName="PO.Item" modelObjectType="JoinNodeInput">
+      <upperLeftCorner y="30" x="320"/>
+      <rectangleSize width="246"/>
+    </shape>
+    <shape modelObjectNameSpace="StarJoinViewNodeInput" modelObjectName="Join_1" modelObjectType="repository">
+      <upperLeftCorner y="30" x="20"/>
+      <rectangleSize width="250"/>
+    </shape>
+    <shape modelObjectNameSpace="StarJoinViewNodeSharedCV" modelObjectName="PRODUCTS" modelObjectType="repository">
+      <upperLeftCorner y="30" x="320"/>
+      <rectangleSize width="224"/>
+    </shape>
+  </shapes>
+</layout>
+</Calculation:scenario>   

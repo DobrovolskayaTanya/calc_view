@@ -1,0 +1,4 @@
+service {
+    "PURCHASE_ORDERS" as "PO" key ("PURCHASEORDERID")
+    parameters via key and entity;
+	  }
