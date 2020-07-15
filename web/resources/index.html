@@ -11,7 +11,7 @@
 		</script>
 <script>
 
-	var oModel = new sap.ui.model.odata.v2.ODataModel("/xsodata/po.xsodata", true);
+	var oModel = new sap.ui.model.odata.v2.ODataModel("/xsodata/purchaseOrder.xsodata", true);
 	var oTable = new sap.ui.table.Table({ title: "PO data" });
 	oTable.addColumn(new sap.ui.table.Column({ label: "PO ID", template: "PURCHASEORDERID" }));
 	oTable.addColumn(new sap.ui.table.Column({ label: "Currency", template: "CURRENCY" }));
